@@ -38,3 +38,11 @@ Thumbs.db
 # Temporary files
 *.tmp
 *.bak
+# Backend virtual environment
+backend/venv/
+
+# Python caches
+**/__pycache__/
+
+# Backup files
+*.bak_*
