@@ -1,5 +1,4 @@
 """Workflow integrations - safe bridge to JARVIS tools."""
-import warnings
 from dataclasses import dataclass, field
 from typing import Any, Optional, Protocol, Dict
 
@@ -45,9 +44,9 @@ def register_integration(name: str):
         Decorator function.
     """
     def decorator(cls: type) -> type:
-        if name in _INTEGRATION_REGISTRY:
-            warnings.warn(f"Integration '{name}' already registered. Overwriting.")
-        _INTEGRATION_REGISTRY[name] = cls()
+        # Skip silently if already registered (prevent duplicate registrations)
+        if name not in _INTEGRATION_REGISTRY:
+            _INTEGRATION_REGISTRY[name] = cls()
         return cls
     return decorator
 

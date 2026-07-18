@@ -2,7 +2,7 @@ import json
 from dataclasses import dataclass, field
 from typing import Any, Optional
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, timezone
 import uuid
 
 
@@ -49,8 +49,8 @@ class KnowledgeEntry:
     tags: list[str] = field(default_factory=list)
     related_entries: list[str] = field(default_factory=list)
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
-    updated_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    updated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     archived: bool = False
 
     def to_dict(self) -> dict[str, Any]:
@@ -92,7 +92,7 @@ class KnowledgeCollection:
         for key, value in updates.items():
             if hasattr(entry, key):
                 setattr(entry, key, value)
-        entry.updated_at = datetime.utcnow().isoformat()
+        entry.updated_at = datetime.now(timezone.utc).isoformat()
         self._rebuild_index(entry_id)
         return True
 
@@ -100,7 +100,7 @@ class KnowledgeCollection:
         if entry_id not in self._entries:
             return False
         self._entries[entry_id].archived = True
-        self._entries[entry_id].updated_at = datetime.utcnow().isoformat()
+        self._entries[entry_id].updated_at = datetime.now(timezone.utc).isoformat()
         return True
 
     def delete(self, entry_id: str) -> bool:
@@ -173,8 +173,8 @@ class KnowledgeCollection:
                     tags=entry_data.get('tags', []),
                     related_entries=entry_data.get('related_entries', []),
                     id=entry_data.get('id', str(uuid.uuid4())),
-                    created_at=entry_data.get('created_at', datetime.utcnow().isoformat()),
-                    updated_at=entry_data.get('updated_at', datetime.utcnow().isoformat()),
+                    created_at=entry_data.get('created_at', datetime.now(timezone.utc).isoformat()),
+                    updated_at=entry_data.get('updated_at', datetime.now(timezone.utc).isoformat()),
                     archived=entry_data.get('archived', False),
                 )
                 self.add(entry)
