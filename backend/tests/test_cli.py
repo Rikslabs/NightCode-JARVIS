@@ -5,6 +5,7 @@ from unittest.mock import Mock
 
 from app.cli import start_cli
 from app.jarvis import JarvisService
+from app.version import __version__
 
 
 def run_cli(commands):
@@ -28,7 +29,7 @@ def run_cli(commands):
 def test_cli_startup():
     output, prompts, _ = run_cli(["exit"])
 
-    assert output[0] == "NightCode-JARVIS v1.1"
+    assert output[0] == f"NightCode-JARVIS v{__version__}"
     assert prompts == ["jarvis > "]
 
 

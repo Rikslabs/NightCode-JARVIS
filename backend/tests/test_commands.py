@@ -1,4 +1,5 @@
 import pytest
+from app.version import __version__
 from unittest.mock import MagicMock
 from app.commands.memory_commands import RememberNameCommand, GetNameCommand
 from app.commands.system_status import SystemStatusCommand
@@ -53,5 +54,5 @@ def test_system_status_command_returns_report():
     cmd = SystemStatusCommand()
     response = cmd.execute({})
     assert "JARVIS Status: Operational" in response
-    assert "Version: 1.0.0" in response
+    assert f"Version: {__version__}" in response
     assert "Available Modules:" in response

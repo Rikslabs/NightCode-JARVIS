@@ -1,5 +1,6 @@
 from ..memory.base import Command
 from ..memory.registry import register_command
+from ..version import __version__
 
 @register_command("system_status")
 class SystemStatusCommand(Command):
@@ -19,12 +20,11 @@ class SystemStatusCommand(Command):
             A string detailing the system status.
         """
         jarvis_status = "Operational"
-        jarvis_version = "1.0.0" # Placeholder
         available_modules = ["system_status", "memory_manager"] # Placeholder
 
         status_report = (
             f"JARVIS Status: {jarvis_status}\n"
-            f"Version: {jarvis_version}\n"
+            f"Version: {__version__}\n"
             f"Available Modules: {', '.join(available_modules)}"
         )
         return status_report

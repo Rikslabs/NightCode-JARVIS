@@ -1,7 +1,12 @@
 {
-  "current_version": "1.1.0",
-  "completed_stages": ["v1-foundation", "v1-cli"],
+  "current_version": "2.3.1",
+  "completed_stages": [
+    "v1-foundation",
+    "v1-cli",
+    "planner"
+  ],
   "active_mission": null,
-  "last_completed_stage": "v1-cli",
-  "timestamp": "2026-07-19T00:00:00+00:00"
+  "last_completed_stage": "planner",
+  "timestamp": "2026-07-19T03:43:34.805002+00:00",
+  "mission_status": "COMPLETED"
 }

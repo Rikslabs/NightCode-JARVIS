@@ -1,5 +1,6 @@
 from .base import Tool, ToolResult
 from .registry import register_tool
+from ..version import __version__
 
 
 @register_tool("system")
@@ -34,7 +35,7 @@ class SystemTool(Tool):
                     success=True,
                     data={
                         "status": "Operational",
-                        "version": "1.0.0",
+                        "version": __version__,
                     },
                 )
 

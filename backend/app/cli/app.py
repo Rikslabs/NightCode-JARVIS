@@ -14,8 +14,11 @@ from app.coding import (
     SafeApplyService,
 )
 from app.git import GitAssistant
-from app.jarvis import JarvisService, MissionService
+from app.jarvis import JarvisService, MissionReviewer, MissionService
+from app.jarvis.exporter import MissionExporter
+from app.providers import GenerationService, ProviderManager, create_default_provider_manager
 from app.terminal import TerminalAssistant
+from app.version import __version__
 
 from .commands import CLICommands
 
@@ -25,6 +28,7 @@ def start_cli(
     input_func: Callable[[str], str] = input,
     output_func: Callable[[str], None] = print,
     mission_factory: Optional[Callable[[], MissionService]] = None,
+    provider_factory: Optional[Callable[[], ProviderManager]] = None,
 ) -> None:
     """Start the interactive CLI and continue until exit or end-of-input."""
     factory = service_factory or _create_jarvis_service
@@ -38,8 +42,19 @@ def start_cli(
     except Exception as exc:
         output_func(f"Error: Unable to start MissionService: {exc}")
         return
-    commands = CLICommands(service, output_func, mission)
-    output_func("NightCode-JARVIS v1.1")
+    reviewer = MissionReviewer(mission, service.git_status, Path.cwd())
+    providers = (provider_factory or create_default_provider_manager)()
+    generation = GenerationService(providers)
+    commands = CLICommands(
+        service,
+        output_func,
+        mission,
+        MissionExporter(mission),
+        reviewer,
+        providers,
+        generation,
+    )
+    output_func(f"NightCode-JARVIS v{__version__}")
 
     while True:
         try:
@@ -78,3 +93,7 @@ def _create_jarvis_service() -> JarvisService:
 
 def _create_mission_service() -> MissionService:
     return MissionService(Path.cwd() / "jarvis")
+
+
+if __name__ == "__main__":
+    start_cli()

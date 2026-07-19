@@ -2,6 +2,7 @@
 
 from .service import JarvisService
 from .mission import MissionService
+from .reviewer import MissionReviewer, ReviewReport, TestSummary, VerificationReport
 from .models_mission import (
     MissionRules,
     MissionStage,
@@ -20,4 +21,8 @@ __all__ = [
     "MissionRules",
     "MissionState",
     "MissionSummary",
+    "MissionReviewer",
+    "ReviewReport",
+    "TestSummary",
+    "VerificationReport",
 ]

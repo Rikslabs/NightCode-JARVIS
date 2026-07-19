@@ -43,8 +43,16 @@ class MissionService:
             status=str(stage["status"]),
             dependencies=list(stage.get("dependencies", [])),
             estimated_files=list(stage.get("estimated_files", [])),
+            allowed_companion_files=list(stage.get("allowed_companion_files", [])),
             approval_required=bool(stage.get("approval_required", True)),
-        ) for stage in data.get("stages", [])]
+            completion_version=stage.get("completion_version"),
+            completion_timestamp=stage.get("completion_timestamp"),
+            completion_sequence=(
+                int(stage["completion_sequence"])
+                if stage.get("completion_sequence") is not None
+                else sequence if stage.get("status") == "completed" else None
+            ),
+        ) for sequence, stage in enumerate(data.get("stages", []), start=1)]
         return ProjectRoadmap(version=str(data["version"]), stages=stages)
 
     def load_rules(self) -> MissionRules:
@@ -157,10 +165,20 @@ class MissionService:
             raise ValueError("Cannot complete because no active mission exists.")
         roadmap_data = self._load_document("roadmap.yaml")
         stages = roadmap_data.get("stages", [])
+        previously_completed = set(state.completed_stages)
+        previously_completed.update(
+            str(stage.get("id"))
+            for stage in stages
+            if stage.get("status") == "completed"
+        )
         matched = False
+        completed_at = self._timestamp()
         for stage in stages:
             if stage.get("id") == state.active_mission:
                 stage["status"] = "completed"
+                stage["completion_version"] = str(roadmap_data["version"])
+                stage["completion_timestamp"] = completed_at
+                stage["completion_sequence"] = len(previously_completed) + 1
                 matched = True
                 break
         if not matched:
@@ -172,7 +190,7 @@ class MissionService:
         state.active_mission = None
         if stages and all(stage.get("status") == "completed" for stage in stages):
             state.current_version = str(roadmap_data["version"])
-        state.timestamp = self._timestamp()
+        state.timestamp = completed_at
         self._write_document("roadmap.yaml", roadmap_data)
         self._write_state(state, "COMPLETED")
         return state

@@ -2,7 +2,17 @@
 
 from typing import Callable, List, Optional
 
-from app.jarvis import JarvisService, MissionService, MissionStage
+from app.jarvis import (
+    JarvisService,
+    MissionReviewer,
+    MissionService,
+    MissionStage,
+    ReviewReport,
+    VerificationReport,
+)
+from app.jarvis.exporter import MissionExporter
+from app.providers import GenerationService, Provider, ProviderManager
+from app.version import __version__
 
 
 class CLICommands:
@@ -13,10 +23,18 @@ class CLICommands:
         service: JarvisService,
         output: Callable[[str], None],
         mission: Optional[MissionService] = None,
+        exporter: Optional[MissionExporter] = None,
+        reviewer: Optional[MissionReviewer] = None,
+        providers: Optional[ProviderManager] = None,
+        generation: Optional[GenerationService] = None,
     ) -> None:
         self._service = service
         self._output = output
         self._mission = mission
+        self._exporter = exporter
+        self._reviewer = reviewer
+        self._providers = providers
+        self._generation = generation
         self._history: List[str] = []
 
     def execute(self, command: str) -> bool:
@@ -34,6 +52,10 @@ class CLICommands:
                     "mission, mission status, mission next, mission preview, "
                     "mission roadmap, mission blueprint, mission rules, mission execute, "
                     "mission approve, mission reject, mission complete, mission reset"
+                    ", mission export, mission export codex, mission review, "
+                    "mission verify, mission report, provider, provider list, "
+                    "provider current, provider models, provider switch <provider>, "
+                    "ai ask \"<prompt>\", version"
                 )
                 return True
             if normalized == "clear":
@@ -42,6 +64,9 @@ class CLICommands:
             if normalized == "exit":
                 self._output("Goodbye.")
                 return False
+            if normalized == "version":
+                self._output(f"NightCode-JARVIS\nVersion: {__version__}")
+                return True
             if normalized == "analyze":
                 self._analyze()
                 return True
@@ -103,6 +128,36 @@ class CLICommands:
             if normalized == "mission reset":
                 self._require_mission().reset_mission()
                 self._output("Mission reset to IDLE.")
+                return True
+            if normalized == "mission export":
+                self._output(self._require_exporter().export())
+                return True
+            if normalized == "mission export codex":
+                self._output(self._require_exporter().export_codex())
+                return True
+            if normalized == "mission review":
+                self._output(self._format_review(self._require_reviewer().review()))
+                return True
+            if normalized == "mission verify":
+                self._output(self._format_verification(self._require_reviewer().verify()))
+                return True
+            if normalized == "mission report":
+                self._output(self._format_review(self._require_reviewer().latest_report()))
+                return True
+            if normalized in {"provider", "provider list"}:
+                self._provider_list()
+                return True
+            if normalized == "provider current":
+                self._provider_current()
+                return True
+            if normalized == "provider models":
+                self._provider_models()
+                return True
+            if normalized == "provider switch" or normalized.startswith("provider switch "):
+                self._provider_switch(self._argument_after(raw_command, 2))
+                return True
+            if normalized == "ai ask" or normalized.startswith("ai ask "):
+                self._ai_ask(self._quoted_argument(raw_command, 2))
                 return True
             if normalized == "read" or normalized.startswith("read "):
                 self._read(self._argument(raw_command))
@@ -306,7 +361,132 @@ class CLICommands:
             raise RuntimeError("MissionService is unavailable")
         return self._mission
 
+    def _require_exporter(self) -> MissionExporter:
+        if self._exporter is None:
+            raise RuntimeError("MissionExporter is unavailable")
+        return self._exporter
+
+    def _require_reviewer(self) -> MissionReviewer:
+        if self._reviewer is None:
+            raise RuntimeError("MissionReviewer is unavailable")
+        return self._reviewer
+
+    def _require_providers(self) -> ProviderManager:
+        if self._providers is None:
+            raise RuntimeError("ProviderManager is unavailable")
+        return self._providers
+
+    def _require_generation(self) -> GenerationService:
+        if self._generation is None:
+            raise RuntimeError("GenerationService is unavailable")
+        return self._generation
+
+    def _ai_ask(self, prompt: str) -> None:
+        if not prompt:
+            self._output('Usage: ai ask "<prompt>"')
+            return
+        service = self._require_generation()
+        self._output(service.format_terminal(service.ask(prompt)))
+
+    def _provider_list(self) -> None:
+        manager = self._require_providers()
+        providers = manager.refresh_providers()
+        current = manager.active_provider()
+        if not providers:
+            self._output("Providers: none registered")
+            return
+        self._output("Providers:\n" + "\n".join(
+            self._format_provider(provider, current is not None and provider.id == current.id)
+            for provider in providers
+        ))
+
+    def _provider_current(self) -> None:
+        provider = self._require_providers().active_provider()
+        if provider is None:
+            self._output("Active provider: none")
+            return
+        provider.refresh()
+        self._output(
+            f"Current Provider: {provider.display_name} ({provider.id})\n"
+            f"Selected Model: {provider.selected_model or 'none'}\n"
+            f"Connection Status: {provider.status.value}"
+        )
+
+    def _provider_models(self) -> None:
+        providers = self._require_providers().refresh_providers()
+        self._output("Provider Models:\n" + "\n".join(
+            f"{provider.display_name}\n"
+            f"Status: {provider.status.value}\n"
+            f"Models:\n"
+            + (
+                "\n".join(f"- {model}" for model in provider.models)
+                if provider.models
+                else "(no local models)"
+            )
+            for provider in providers
+        ))
+
+    def _provider_switch(self, provider_id: str) -> None:
+        if not provider_id:
+            self._output("Usage: provider switch <provider>")
+            return
+        provider = self._require_providers().switch_provider(provider_id)
+        self._output(f"Active provider switched to {provider.display_name} ({provider.id}).")
+
+    @staticmethod
+    def _format_provider(provider: Provider, active: bool) -> str:
+        capabilities = ", ".join(item.value for item in provider.capabilities) or "none"
+        models = ", ".join(provider.models) or "none"
+        marker = " [active]" if active else ""
+        return (
+            f"- {provider.display_name} ({provider.id}){marker}\n"
+            f"  Status: {provider.status.value}\n"
+            f"  Available Models: {models}\n"
+            f"  Capabilities: {capabilities}"
+        )
+
+    @staticmethod
+    def _format_verification(report: VerificationReport) -> str:
+        return (
+            f"Mission: {report.mission_name} ({report.mission_id})\n"
+            f"Lifecycle: {report.lifecycle}\n"
+            f"Expected files: {', '.join(report.expected_files) or 'none'}\n"
+            f"Detected modified files: {', '.join(report.detected_modified_files) or 'none'}\n"
+            f"Missing files: {', '.join(report.missing_files) or 'none'}\n"
+            f"Required created files: {', '.join(report.required_created_files) or 'none'}\n"
+            f"Unexpected files: {', '.join(report.unexpected_files) or 'none'}\n"
+            f"Repository consistency: {'consistent' if report.repository_consistent else 'inconsistent'}"
+        )
+
+    @classmethod
+    def _format_review(cls, report: ReviewReport) -> str:
+        tests = report.test_summary
+        test_text = (
+            "not available"
+            if tests is None
+            else (
+                f"{tests.command}; passed={tests.passed}, failed={tests.failed}, "
+                f"skipped={tests.skipped}, exit_code={tests.exit_code}"
+            )
+        )
+        return (
+            f"{cls._format_verification(report.verification)}\n"
+            f"Test summary: {test_text}\n"
+            f"Recommendation: {report.recommendation}"
+        )
+
     @staticmethod
     def _argument(command: str) -> str:
         _, separator, argument = command.partition(" ")
         return argument.strip() if separator else ""
+
+    @staticmethod
+    def _argument_after(command: str, words: int) -> str:
+        return " ".join(command.split()[words:]).strip()
+
+    @staticmethod
+    def _quoted_argument(command: str, words: int) -> str:
+        argument = CLICommands._argument_after(command, words)
+        if len(argument) >= 2 and argument[0] == argument[-1] and argument[0] in "\"'":
+            return argument[1:-1].strip()
+        return argument

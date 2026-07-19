@@ -1,5 +1,5 @@
 {
-  "version": "2.0",
+  "version": "2.3.1",
   "stages": [
     {
       "id": "v1-foundation",
@@ -7,7 +7,11 @@
       "description": "Establish safe coding, terminal, Git, and patch services.",
       "status": "completed",
       "dependencies": [],
-      "estimated_files": ["backend/app/coding", "backend/app/terminal", "backend/app/git"],
+      "estimated_files": [
+        "backend/app/coding",
+        "backend/app/terminal",
+        "backend/app/git"
+      ],
       "approval_required": true
     },
     {
@@ -15,17 +19,26 @@
       "name": "Interactive CLI",
       "description": "Expose approved developer workflows through a local CLI.",
       "status": "completed",
-      "dependencies": ["v1-foundation"],
-      "estimated_files": ["backend/app/cli"],
+      "dependencies": [
+        "v1-foundation"
+      ],
+      "estimated_files": [
+        "backend/app/cli"
+      ],
       "approval_required": true
     },
     {
       "id": "planner",
       "name": "Planning Engine",
       "description": "Introduce approval-gated planning from project blueprints.",
-      "status": "pending",
-      "dependencies": ["v1-cli"],
-      "estimated_files": ["backend/app/jarvis/planner.py", "backend/tests/test_planner.py"],
+      "status": "completed",
+      "dependencies": [
+        "v1-cli"
+      ],
+      "estimated_files": [
+        "backend/app/jarvis/planner.py",
+        "backend/tests/test_planner.py"
+      ],
       "approval_required": true
     },
     {
@@ -33,8 +46,13 @@
       "name": "Mission Execution Coordination",
       "description": "Coordinate approved stages without enabling autonomy.",
       "status": "pending",
-      "dependencies": ["planner"],
-      "estimated_files": ["backend/app/jarvis/mission_runner.py", "backend/tests/test_mission_runner.py"],
+      "dependencies": [
+        "planner"
+      ],
+      "estimated_files": [
+        "backend/app/jarvis/mission_runner.py",
+        "backend/tests/test_mission_runner.py"
+      ],
       "approval_required": true
     }
   ]

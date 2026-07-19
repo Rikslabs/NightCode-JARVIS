@@ -23,7 +23,11 @@ class MissionStage:
     status: str
     dependencies: List[str] = field(default_factory=list)
     estimated_files: List[str] = field(default_factory=list)
+    allowed_companion_files: List[str] = field(default_factory=list)
     approval_required: bool = True
+    completion_version: Optional[str] = None
+    completion_timestamp: Optional[str] = None
+    completion_sequence: Optional[int] = None
 
 
 @dataclass(frozen=True)
