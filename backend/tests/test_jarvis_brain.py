@@ -34,4 +34,4 @@ def test_brain_falls_back_to_ai_when_no_command():
 def test_brain_name_and_version():
     brain = JarvisBrain()
     assert brain.name == "JARVIS Core"
-    assert brain.version == "0.5"
+    assert brain.version == "1.0.0"

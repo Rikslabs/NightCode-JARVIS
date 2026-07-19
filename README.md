@@ -1,30 +1,39 @@
-# NightCode Labs
+# NightCode-JARVIS
 
-## JARVIS Core v0.1
+## V1.0.0
 
-Personal AI Assistant developed by NightCode Labs.
+NightCode-JARVIS V1 is a developer-assistant foundation for safe, local repository workflows.
 
-## Vision
+### Capabilities
 
-Building Intelligent Worlds.
+- Read-only project analysis, repository exploration, Python symbol discovery, and code explanation.
+- Structured patch proposals with explicit approval required before safe application and timestamped backup creation.
+- Allowlisted terminal execution with captured output and timeouts.
+- Read-only Git status, diff, log, branch, and repository summaries.
+- A dependency-injected `JarvisService` facade composing coding, terminal, Git, and safe-apply services.
 
-## Goals
+V1 does not add voice, desktop UI, networking, autonomous editing, or destructive Git/terminal operations.
 
-- AI conversational assistant
-- Developer automation
-- Voice interaction
-- Memory system
-- Future AI-powered tools
+### Usage
 
-## Tech Stack
+```python
+from app.jarvis import JarvisService
 
-Frontend:
-- React
-- Tailwind CSS
+jarvis = JarvisService(
+    coding=coding_service,
+    terminal=terminal_assistant,
+    git=git_assistant,
+    safe_apply=safe_apply_service,
+)
 
-Backend:
-- Python
-- FastAPI
+project = jarvis.analyze_project()
+files = jarvis.list_files(".py")
+```
 
-Database:
-- MongoDB
+All dependencies are supplied explicitly so applications retain control over repository roots, command execution, and patch approval.
+
+## Technology
+
+- Python / FastAPI backend
+- React / Tailwind CSS frontend
+- MongoDB persistence

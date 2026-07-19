@@ -1,0 +1,9 @@
+{
+  "project_name": "NightCode-JARVIS",
+  "current_version": "1.1.0",
+  "architecture_layers": ["CLI", "Jarvis service facade", "Coding services", "Terminal and Git assistants", "Safe Apply"],
+  "coding_standards": ["Strong typing", "Dependency injection", "No globals or singletons", "Preserve public APIs"],
+  "testing_requirements": ["Run targeted tests first", "Add focused tests for each approved stage", "Run the full suite only for release validation"],
+  "approval_workflow": ["Preview the next stage", "Present scope and estimated files", "Wait for explicit user approval", "Stop after the approved stage"],
+  "safety_policies": ["Never delete project files", "Never commit or push automatically", "Never bypass Safe Apply", "Never modify unrelated modules"]
+}

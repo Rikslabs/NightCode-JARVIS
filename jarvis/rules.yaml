@@ -1,0 +1,13 @@
+{
+  "rules": [
+    "Never delete project files.",
+    "Never commit automatically.",
+    "Never push automatically.",
+    "Never bypass Safe Apply.",
+    "Always run targeted tests first.",
+    "Always wait for approval.",
+    "Never modify unrelated modules.",
+    "Prefer incremental changes.",
+    "Stop immediately after completing the approved stage."
+  ]
+}

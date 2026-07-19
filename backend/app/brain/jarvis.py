@@ -1,3 +1,4 @@
+from app import __version__
 from app.ai.ollama import OllamaProvider
 from app.ai.provider_manager import ProviderManager
 from app.brain.dispatcher import CommandDispatcher
@@ -7,7 +8,7 @@ from app.brain.matcher import CommandMatcher
 class JarvisBrain:
     def __init__(self):
         self.name = "JARVIS Core"
-        self.version = "0.5"
+        self.version = __version__
 
         self.provider_manager = ProviderManager()
         self.provider_manager.register_provider(

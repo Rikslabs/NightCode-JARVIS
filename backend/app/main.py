@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 
+from app import __version__
 from app.brain.jarvis import JarvisBrain
 
 # Import commands to ensure they are registered
@@ -9,7 +10,7 @@ from app.commands import memory_commands
 
 app = FastAPI(
     title="NightCode Labs - JARVIS Core",
-    version="0.2.0"
+    version=__version__
 )
 
 brain = JarvisBrain()
